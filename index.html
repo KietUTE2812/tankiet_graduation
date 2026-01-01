@@ -5,16 +5,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lời Mời Tốt Nghiệp | The Next Chapter</title>
-    <!-- Tailwind CSS -->
+
+    <!-- Preconnect to CDNs for faster loading -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://api.dicebear.com">
+
+    <!-- Tailwind CSS - Load immediately as it's critical -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
+
+    <!-- Google Fonts - Load with display=swap for better performance -->
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@1,600&display=swap"
-        rel="stylesheet">
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Confetti JS -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+        rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@1,600&display=swap"
+            rel="stylesheet">
+    </noscript>
+
+    <!-- FontAwesome - Load asynchronously -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </noscript>
+
+    <!-- Confetti JS - Lazy load, only when needed -->
+    <script>
+        // Lazy load confetti library
+        let confettiLoaded = false;
+        function loadConfetti() {
+            if (!confettiLoaded) {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+                script.async = true;
+                document.head.appendChild(script);
+                confettiLoaded = true;
+            }
+        }
+    </script>
 
     <script>
         tailwind.config = {
@@ -104,6 +137,7 @@
         .text-gradient {
             background: linear-gradient(to right, #38bdf8, #818cf8);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -443,7 +477,8 @@
                     class="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500">
                 </div>
                 <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix" alt="Graduate"
-                    class="relative w-full h-full rounded-full border-2 border-white/20 bg-dark object-cover shadow-2xl">
+                    class="relative w-full h-full rounded-full border-2 border-white/20 bg-dark object-cover shadow-2xl"
+                    loading="lazy" fetchpriority="low">
                 <div
                     class="absolute bottom-0 right-0 bg-accent text-dark text-xs font-bold px-2 py-1 rounded-full border border-dark">
                     Kịt
@@ -814,6 +849,9 @@
         const rsvpTypeInput = document.getElementById('rsvpType');
 
         function openRSVP(type = 'attend') {
+            // Preload confetti library when modal opens (user might submit)
+            loadConfetti();
+
             // Update Modal UI based on type
             if (type === 'wish') {
                 modalTitle.innerText = "Gửi Lời Chúc";
@@ -892,18 +930,31 @@
         }
 
         function launchConfetti() {
-            var duration = 3 * 1000;
-            var animationEnd = Date.now() + duration;
-            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-            var random = function (min, max) { return Math.random() * (max - min) + min; };
+            // Ensure confetti library is loaded
+            loadConfetti();
 
-            var interval = setInterval(function () {
-                var timeLeft = animationEnd - Date.now();
-                if (timeLeft <= 0) return clearInterval(interval);
-                var particleCount = 50 * (timeLeft / duration);
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
-            }, 250);
+            // Wait for confetti to be available
+            const checkConfetti = setInterval(() => {
+                if (typeof confetti !== 'undefined') {
+                    clearInterval(checkConfetti);
+
+                    var duration = 3 * 1000;
+                    var animationEnd = Date.now() + duration;
+                    var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+                    var random = function (min, max) { return Math.random() * (max - min) + min; };
+
+                    var interval = setInterval(function () {
+                        var timeLeft = animationEnd - Date.now();
+                        if (timeLeft <= 0) return clearInterval(interval);
+                        var particleCount = 50 * (timeLeft / duration);
+                        confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
+                        confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
+                    }, 250);
+                }
+            }, 50);
+
+            // Timeout after 2 seconds if confetti doesn't load
+            setTimeout(() => clearInterval(checkConfetti), 2000);
         }
     </script>
 </body>
