@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lời Mời Tốt Nghiệp | The Next Chapter</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@1,600&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Confetti JS -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        accent: '#38bdf8', // Sky 400
+                        dark: '#0f172a',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'shine': 'shine 1.5s ease-in-out infinite',
+                        'wish-float': 'floatUp var(--duration) linear forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        shine: {
+                            '0%': { left: '-100%' },
+                            '100%': { left: '100%' }
+                        },
+                        floatUp: {
+                            '0%': { transform: 'translateY(100vh) translateX(0)', opacity: '0' },
+                            '10%': { opacity: '0.8' },
+                            '90%': { opacity: '0.8' },
+                            '100%': { transform: 'translateY(-20vh) translateX(var(--drift))', opacity: '0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            overflow-x: hidden;
+            /* Đảm bảo chiều cao tối thiểu cho mobile để tránh bị cắt nội dung */
+            min-height: 100dvh;
+            perspective: 1000px;
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.1s ease, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 1.5rem;
+            padding: 2px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(255, 255, 255, 0.05), rgba(56, 189, 248, 0.1));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        /* 3D Content Lift Effect */
+        .card-content {
+            transform: translateZ(20px);
+        }
+
+        .floating-element {
+            transform: translateZ(40px);
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Mobile Optimization for Touch Targets */
+        button,
+        a,
+        input,
+        textarea {
+            touch-action: manipulation;
+        }
+
+        /* Wishes Styles */
+        .wish-bubble {
+            position: absolute;
+            bottom: -50px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            padding: 8px 16px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.875rem;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Intro Section Styles */
+        #introSection {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #020617;
+            transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+        }
+
+        #introSection.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .intro-container {
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .logo-container {
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: scale(0.5) translateY(-50px);
+            animation: logoEntrance 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
+        }
+
+        @keyframes logoEntrance {
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .logo-circle {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow:
+                0 0 60px rgba(56, 189, 248, 0.5),
+                0 0 100px rgba(129, 140, 248, 0.3);
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes logoPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow:
+                    0 0 60px rgba(56, 189, 248, 0.5),
+                    0 0 100px rgba(129, 140, 248, 0.3);
+            }
+
+            50% {
+                transform: scale(1.1);
+                box-shadow:
+                    0 0 80px rgba(56, 189, 248, 0.7),
+                    0 0 120px rgba(129, 140, 248, 0.5);
+            }
+        }
+
+        .logo-icon {
+            font-size: 60px;
+            color: white;
+            animation: iconRotate 4s linear infinite;
+        }
+
+        @keyframes iconRotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .title-section {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out 0.8s forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .intro-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 700;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            letter-spacing: 2px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .intro-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 4px;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            border-radius: 2px;
+            animation: expandLine 1.5s ease-out 1.5s forwards;
+        }
+
+        @keyframes expandLine {
+            to {
+                width: 100%;
+            }
+        }
+
+        .intro-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 30px;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 1.2s forwards;
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin: 50px auto;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 1.5s forwards;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            border-radius: 2px;
+            width: 0;
+            animation: progressFill 3s ease-out 2s forwards;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+        }
+
+        @keyframes progressFill {
+            to {
+                width: 100%;
+            }
+        }
+
+        .loading-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 1.8s forwards, pulse 2s ease-in-out 3s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .skip-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1001;
+            animation: fadeInUp 1s ease-out 2.5s forwards;
+        }
+
+        .skip-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Hide main content initially */
+        body>*:not(#introSection) {
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+
+        body.intro-complete>*:not(#introSection) {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .logo-circle {
+                width: 100px;
+                height: 100px;
+            }
+
+            .logo-icon {
+                font-size: 50px;
+            }
+
+            .skip-button {
+                bottom: 20px;
+                right: 20px;
+                padding: 10px 20px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center p-4 relative overflow-hidden">
+
+    <!-- Intro Section -->
+    <div id="introSection">
+        <div class="intro-container">
+            <div class="logo-container">
+                <div class="logo-circle">
+                    <div class="logo-icon">🎓</div>
+                </div>
+            </div>
+
+            <div class="title-section">
+                <h1 class="intro-title">Lễ Tốt Nghiệp</h1>
+                <p class="intro-subtitle">Một hành trình mới bắt đầu</p>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+
+            <div class="loading-text">Đang tải...</div>
+        </div>
+
+        <button class="skip-button" onclick="skipIntro()">Bỏ qua</button>
+    </div>
+
+    <!-- Background Canvas (Network Particles) -->
+    <canvas id="bgCanvas" class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none"></canvas>
+
+    <!-- Floating Wishes Container -->
+    <div id="wishes-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- MAIN INVITATION CARD -->
+    <!-- Added z-10 to keep card above wishes -->
+    <div id="inviteCard"
+        class="tilt-card glass-card w-full max-w-md rounded-3xl p-6 md:p-8 relative group cursor-default my-auto z-10">
+
+        <!-- Decorative Top Badge -->
+        <div class="absolute -top-5 left-1/2 -translate-x-1/2 floating-element z-20">
+            <div
+                class="bg-dark border border-white/10 px-4 py-2 rounded-full shadow-xl flex items-center gap-2 whitespace-nowrap">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-xs font-mono font-bold tracking-wider text-gray-300">INVITATION.v1.0</span>
+            </div>
+        </div>
+
+        <div class="card-content flex flex-col items-center text-center mt-6">
+
+            <!-- Guest Greeting (Dynamic) -->
+            <div id="guest-greeting-container" class="mb-4 hidden animate-pulse">
+                <div class="inline-block px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
+                    <p class="text-xs md:text-sm text-accent font-mono">
+                        Thân gửi: <span id="guest-name-display" class="font-bold text-white ml-1"></span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Avatar / Image -->
+            <div class="relative w-24 h-24 md:w-28 md:h-28 mb-6">
+                <div
+                    class="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500">
+                </div>
+                <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix" alt="Graduate"
+                    class="relative w-full h-full rounded-full border-2 border-white/20 bg-dark object-cover shadow-2xl">
+                <div
+                    class="absolute bottom-0 right-0 bg-accent text-dark text-xs font-bold px-2 py-1 rounded-full border border-dark">
+                    Kịt
+                </div>
+            </div>
+
+            <!-- Title & Name -->
+            <h2 class="text-xs md:text-sm font-bold tracking-[0.2em] text-gray-500 uppercase mb-2">Lễ Tốt Nghiệp</h2>
+            <h1 class="text-3xl md:text-5xl font-serif text-white mb-2 leading-tight">
+                Đào Tấn <br /> <span class="text-gradient font-bold">Kiệt</span>
+            </h1>
+            <p class="text-gray-400 font-light text-sm italic max-w-xs mx-auto mb-8">
+                "Code xong rồi, giờ là lúc ăn mừng phiên bản nâng cấp của cuộc đời!"
+            </p>
+
+            <!-- Divider -->
+            <div class="w-full h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-6 md:mb-8"></div>
+
+            <!-- Details Section -->
+            <div class="w-full space-y-4 mb-8 text-left px-2">
+                <!-- Time -->
+                <div class="flex items-center gap-4 group/item transition">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-accent group-hover/item:bg-accent group-hover/item:text-dark transition-colors duration-300 shrink-0">
+                        <i class="fa-regular fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-bold uppercase">Thời gian</p>
+                        <p class="text-white font-mono text-sm md:text-base">08:00 AM • 24.01.2026</p>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="flex items-center gap-4 group/item transition">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-purple-400 group-hover/item:bg-purple-400 group-hover/item:text-dark transition-colors duration-300 shrink-0">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-bold uppercase">Địa điểm</p>
+                        <p class="text-white font-mono text-sm md:text-base">Hội trường A, ĐH Công Nghệ Kỹ Thuật
+                            (HCM-UTE)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="w-full space-y-3 floating-element">
+                <!-- Primary Button: RSVP -->
+                <button onclick="openRSVP('attend')"
+                    class="group relative w-full overflow-hidden rounded-xl bg-white p-[1px] transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    <div
+                        class="relative flex items-center justify-center gap-2 rounded-xl bg-dark px-8 py-3 transition-all group-hover:bg-opacity-90">
+                        <span
+                            class="relative bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-base md:text-lg font-bold text-transparent">
+                            Gửi lời chúc
+                        </span>
+                        <i
+                            class="fa-solid fa-arrow-right text-cyan-400 transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                    <div
+                        class="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent z-20">
+                    </div>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- RSVP / WISH MODAL -->
+    <div id="rsvp-modal"
+        class="fixed inset-0 z-50 bg-black/90 hidden items-center justify-center backdrop-blur-md transition-opacity opacity-0 px-4">
+        <div class="bg-[#1e293b] border border-gray-700 p-6 md:p-8 rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-all duration-300 flex flex-col max-h-[90vh] overflow-y-auto"
+            id="modal-panel">
+
+            <!-- Modal Header -->
+            <div class="flex justify-between items-start mb-2">
+                <h3 id="modal-title" class="text-2xl font-serif text-white">Lời Chúc</h3>
+                <button onclick="closeRSVP()" class="text-gray-500 hover:text-white"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <p id="modal-desc" class="text-gray-400 text-sm mb-6">Hãy cho mình biết nếu bạn đến nhé!</p>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Tên của bạn <span
+                            class="text-red-400">*</span></label>
+                    <input type="text" id="guestName"
+                        class="w-full bg-[#0f172a] border border-gray-700 rounded-lg p-3 text-white focus:border-accent focus:ring-1 focus:ring-accent outline-none transition placeholder-gray-600"
+                        placeholder="Nhập tên của bạn">
+                </div>
+
+                <!-- Wish Section (Highlighted) -->
+                <div class="bg-[#0f172a]/50 p-3 rounded-lg border border-gray-700/50">
+                    <label class="block text-xs font-bold text-accent uppercase mb-2 flex items-center gap-2">
+                        <i class="fa-regular fa-heart"></i> Gửi lời chúc mừng
+                    </label>
+                    <textarea id="guestMsg" rows="3"
+                        class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 text-white focus:border-accent focus:ring-1 focus:ring-accent outline-none transition placeholder-gray-600 text-sm"
+                        placeholder="Viết vài dòng tâm sự..."></textarea>
+                </div>
+            </div>
+
+            <input type="hidden" id="rsvpType" value="attend">
+
+            <div class="flex gap-3 mt-8">
+                <button onclick="closeRSVP()"
+                    class="flex-1 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg text-sm font-bold transition">
+                    Đóng
+                </button>
+                <button onclick="submitRSVP()" id="submitBtn"
+                    class="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-cyan-500/20 transition transform hover:-translate-y-0.5">
+                    Gửi ngay
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="toast"
+        class="fixed top-5 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-md border border-green-500/50 text-white px-6 py-3 rounded-full shadow-2xl transform -translate-y-24 transition-transform duration-500 z-50 flex items-center gap-3 w-max max-w-[90vw]">
+        <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-xs shrink-0">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <span id="toastMsg" class="text-sm font-medium truncate">Đã gửi xác nhận. Hẹn gặp bạn!</span>
+    </div>
+
+    <script>
+        // --- 0. Intro Section Control ---
+        let introCompleted = false;
+
+        function skipIntro() {
+            if (!introCompleted) {
+                introCompleted = true;
+                hideIntro();
+            }
+        }
+
+        function hideIntro() {
+            const introSection = document.getElementById('introSection');
+            introSection.classList.add('hidden');
+            document.body.classList.add('intro-complete');
+
+            // Start main content animations
+            setTimeout(() => {
+                initGuestName();
+                initFloatingWishes();
+            }, 100);
+        }
+
+        // Auto hide intro after progress completes (5 seconds total: 2s delay + 3s progress)
+        setTimeout(() => {
+            if (!introCompleted) {
+                introCompleted = true;
+                hideIntro();
+            }
+        }, 5000);
+
+        // --- 1. Canvas Background (Network Particles) ---
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.4)'; // Sky-400 color match
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Init Particles
+        for (let i = 0; i < 60; i++) particles.push(new Particle());
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw connections
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 150) {
+                        // Dynamic opacity based on distance
+                        ctx.strokeStyle = `rgba(56, 189, 248, ${0.15 - dist / 1500})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+
+        // --- 2. 3D Tilt Effect Logic (Mobile Optimized) ---
+        const card = document.getElementById('inviteCard');
+        const maxTilt = 15;
+
+        document.addEventListener('mousemove', (e) => {
+            // Disable on mobile/tablet to prevent weird scrolling or interaction issues
+            if (window.innerWidth < 1024) return;
+
+            const cardRect = card.getBoundingClientRect();
+            const cardCenterX = cardRect.left + cardRect.width / 2;
+            const cardCenterY = cardRect.top + cardRect.height / 2;
+
+            const mouseX = e.clientX - cardCenterX;
+            const mouseY = e.clientY - cardCenterY;
+
+            const rotateX = ((mouseY / (window.innerHeight / 2)) * maxTilt * -1).toFixed(2);
+            const rotateY = ((mouseX / (window.innerWidth / 2)) * maxTilt).toFixed(2);
+
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        document.addEventListener('mouseleave', () => {
+            card.style.transform = `rotateX(0deg) rotateY(0deg)`;
+        });
+
+
+        // --- 3. Dynamic Guest Name Logic (UPDATED DEFAULT) ---
+        function initGuestName() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const listGuest = ["Phan Đức Lê Nam",
+                "Ổ Quỷ",
+                "Nguyễn Thùy Tiên",
+                "Nguyễn Hoàng Phi",
+                "Nguyễn Thị Thanh Hằng",
+                "Nguyễn Đình Nguyên",
+                "Nguyễn Thị Diệu Linh",
+                "Lê Thảo Nguyên",
+                "Phương Trịnh",
+                "Đặng Thị Ngọc Trâm",
+                "Bé Giang",
+                "Phan Đắc Khánh Toàn",
+                "Dương Hoài Ngân",
+                "Đào Tấn Kiệt"];
+            // Linked to the list of invited guests
+            // ?ten=Lê Nam
+            // ?ten=Trần An
+            // etc.
+            // Changed: Defaults to 'Lê Nam' if no param is present so it is visible in preview
+            const getGuestName = () => {
+                let foundName = 'Khách Mời'; // Default name if none found
+                listGuest.forEach(name => {
+                    if (urlParams.get('guest') && urlParams.get('guest') === name) {
+                        foundName = name;
+                    }
+                });
+                return foundName;
+            }
+
+            const guestName = getGuestName();
+
+            if (guestName) {
+                // Hien thi tren card
+                const container = document.getElementById('guest-greeting-container');
+                const display = document.getElementById('guest-name-display');
+                if (container && display) {
+                    display.textContent = guestName;
+                    container.classList.remove('hidden');
+                }
+
+                // Pre-fill modal input
+                const input = document.getElementById('guestName');
+                if (input) input.value = guestName;
+            }
+        }
+        // Don't call immediately - will be called after intro completes
+
+
+        // --- 4. Floating Wishes Logic ---
+        const wishesContainer = document.getElementById('wishes-container');
+        const defaultWishes = [
+            "Chúc mừng tốt nghiệp!",
+            "Tương lai rực rỡ nhé!",
+            "Thành công nha bạn tôi",
+            "Happy Graduation! 🎓",
+            "Mãi đỉnh!",
+            "Sớm thành Senior nhé!",
+            "Quẩy lên nào! 🎉"
+        ];
+
+        function spawnWish(text) {
+            const wish = document.createElement('div');
+            wish.className = 'wish-bubble animate-wish-float';
+            wish.textContent = text;
+
+            // Random properties
+            const leftPos = Math.random() * 90; // 0-90% width
+            const duration = 10 + Math.random() * 10; // 10-20s duration
+            const delay = Math.random() * 1; // 0-5s delay
+            const drift = (Math.random() - 0.5) * 200; // -100px to 100px horizontal drift
+
+            wish.style.left = `${leftPos}%`;
+            wish.style.setProperty('--duration', `${duration}s`);
+            wish.style.setProperty('--drift', `${drift}px`);
+            wish.style.animationDelay = `${delay}s`;
+
+            // Random size variation
+            const scale = 0.8 + Math.random() * 0.4;
+            wish.style.fontSize = `${scale}rem`;
+
+            wishesContainer.appendChild(wish);
+
+            // Cleanup after animation
+            setTimeout(() => {
+                wish.remove();
+            }, (duration + delay) * 1000);
+        }
+
+        // Initialize random wishes loop
+        function initFloatingWishes() {
+            // Initial spawn
+            for (let i = 0; i < 8; i++) {
+                spawnWish(defaultWishes[Math.floor(Math.random() * defaultWishes.length)]);
+            }
+
+            // Continuous spawn loop
+            setInterval(() => {
+                if (document.visibilityState === 'visible') {
+                    spawnWish(defaultWishes[Math.floor(Math.random() * defaultWishes.length)]);
+                }
+            }, 3000);
+        }
+        // Don't call immediately - will be called after intro completes
+
+
+        // --- 5. RSVP Modal Logic (Updated) ---
+        const modal = document.getElementById('rsvp-modal');
+        const modalPanel = document.getElementById('modal-panel');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDesc = document.getElementById('modal-desc');
+        const submitBtn = document.getElementById('submitBtn');
+        const rsvpTypeInput = document.getElementById('rsvpType');
+
+        function openRSVP(type = 'attend') {
+            // Update Modal UI based on type
+            if (type === 'wish') {
+                modalTitle.innerText = "Gửi Lời Chúc";
+                modalDesc.innerText = "Cảm ơn bạn đã gửi những lời chúc tốt đẹp!";
+                submitBtn.innerText = "Gửi Lời Chúc";
+                rsvpTypeInput.value = 'wish';
+                setTimeout(() => document.getElementById('guestMsg').focus(), 100);
+            } else {
+                modalTitle.innerText = "Lời Chúc Tốt Nghiệp";
+                modalDesc.innerText = "Hãy cho mình biết nếu bạn đến nhé!";
+                submitBtn.innerText = "Xác Nhận";
+                rsvpTypeInput.value = 'attend';
+                setTimeout(() => document.getElementById('guestName').focus(), 100);
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // Trigger animation
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalPanel.classList.remove('scale-95');
+                modalPanel.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeRSVP() {
+            modal.classList.add('opacity-0');
+            modalPanel.classList.remove('scale-100');
+            modalPanel.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function submitRSVP() {
+            const name = document.getElementById('guestName').value;
+            const message = document.getElementById('guestMsg').value;
+            const type = rsvpTypeInput.value;
+
+            if (!name) {
+                // Rung nhẹ input để báo lỗi
+                document.getElementById('guestName').classList.add('animate-bounce');
+                document.getElementById('guestName').classList.add('border-red-500');
+                setTimeout(() => {
+                    document.getElementById('guestName').classList.remove('animate-bounce');
+                    document.getElementById('guestName').classList.remove('border-red-500');
+                }, 1000);
+                return;
+            }
+
+            closeRSVP();
+
+            // Show Toast
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+
+            if (type === 'wish') {
+                toastMsg.innerText = "Đã gửi lời chúc. Cảm ơn bạn!";
+                // Spawn the user's wish immediately
+                if (message) spawnWish(message);
+                else spawnWish(`Chúc mừng từ ${name}!`);
+            } else {
+                toastMsg.innerText = "Đã gửi xác nhận. Hẹn gặp bạn!";
+                defaultWishes.push(`Chúc mừng tốt nghiệp từ ${name}!`);
+            }
+
+            toast.style.transform = 'translate(-50%, 0)'; // Move down to visible
+
+            // Confetti Effect
+            launchConfetti();
+
+            setTimeout(() => {
+                toast.style.transform = 'translate(-50%, -150px)'; // Hide again
+            }, 3000);
+        }
+
+        function launchConfetti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+            var random = function (min, max) { return Math.random() * (max - min) + min; };
+
+            var interval = setInterval(function () {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+    </script>
+</body>
+
+</html>
